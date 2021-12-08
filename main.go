@@ -1,3 +1,18 @@
+/*
+   Copyright 2021 Dmitriy Poluyanov
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+*/
 package main
 
 import (
@@ -10,7 +25,8 @@ import (
 
 func main() {
 	// open output file
-	var fo, err = os.OpenFile("C:\\Users\\la_d.poluyanov\\GolandProjects\\bazel\\command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	//var fo, err = os.OpenFile("C:\\Users\\la_d.poluyanov\\GolandProjects\\bazel\\command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	var fo, err = os.OpenFile("/Users/d.poluyanov/workspace/bazel-wsl/command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -70,6 +86,7 @@ func main() {
 
 			bazelArgs = append(bazelArgs, "--build_event_binary_file="+wslPath)
 			sleepAtEnd = true
+			// todo make a flag to convert bep & replace bazel output file with our own
 		} else if strings.HasPrefix(arg, "--override_repository=intellij_aspect=") {
 			var fileName = strings.Replace(arg, "--override_repository=intellij_aspect=", "", 1)
 
@@ -110,7 +127,6 @@ func main() {
 
 	fo.WriteString(fmt.Sprintf("Translated to wsl %s\n", translatedArgsLine))
 	for _, arg := range bazelArgs {
-		//fo.WriteString(hex.EncodeToString([]byte(arg)) + "\n")
 		fo.WriteString(arg + "\n")
 	}
 
