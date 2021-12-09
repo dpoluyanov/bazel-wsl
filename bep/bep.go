@@ -75,8 +75,7 @@ func RewriteBep(from *os.File, to *os.File, logTo *os.File) {
 			for _, file := range namedSet.Files {
 				originalUri := file.GetUri()
 				var path = strings.Replace(originalUri, "file:///home", commonHomePrefix, 1)
-				//var newUri = utils.WSLToWinPath(path)
-				path = "file://" + strings.ReplaceAll(path, "/", "\\")
+				path = "file://" + strings.ReplaceAll(path, "\\", "/")
 				file.File = &buildeventstream.File_Uri{Uri: path}
 				logTo.WriteString(fmt.Sprintf("Replaced %s to %s\n", originalUri, path))
 				newFiles = append(newFiles, file)

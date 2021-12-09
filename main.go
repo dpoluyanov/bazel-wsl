@@ -22,7 +22,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 )
 
 func main() {
@@ -60,6 +59,10 @@ func main() {
 		if strings.HasPrefix(arg, "attr(tags") {
 			var newAttr = strings.Replace(arg, "attr(tags", "attr('tags'", 1)
 			newAttr = strings.Replace(newAttr, "^((?!manual).)*$", "'^((?!manual).)*$'", 1)
+			bazelArgs = append(bazelArgs, newAttr)
+		} else if strings.HasPrefix(arg, "same_pkg_direct_rdeps(") {
+			var newAttr = strings.Replace(arg, "same_pkg_direct_rdeps(", "'same_pkg_direct_rdeps(", 1)
+			newAttr = newAttr + "'"
 			bazelArgs = append(bazelArgs, newAttr)
 		} else if strings.HasPrefix(arg, "--build_event_binary_file=") {
 			var fileName = strings.Replace(arg, "--build_event_binary_file=", "", 1)
@@ -143,8 +146,8 @@ func main() {
 		}()
 
 		bep.RewriteBep(bepFrom, bepTo, fo)
-		bepTo.Close()
+		//bepTo.Close()
 
-		time.Sleep(60 * time.Second)
+		//time.Sleep(60 * time.Second)
 	}
 }
