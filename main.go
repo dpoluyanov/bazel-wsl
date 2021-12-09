@@ -22,6 +22,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 func main() {
@@ -142,8 +143,8 @@ func main() {
 		}()
 
 		bep.RewriteBep(bepFrom, bepTo, fo)
-		//bepTo.Close()
+		bepTo.Close()
 
-		//time.Sleep(60 * time.Second)
+		time.Sleep(60 * time.Second)
 	}
 }
