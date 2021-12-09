@@ -17,9 +17,11 @@ package main
 
 import (
 	"bazel-wsl/bep_proto/buildeventstream"
+	"bazel-wsl/utils"
 	"fmt"
 	"github.com/golang/protobuf/proto"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -30,15 +32,18 @@ func main() {
 
 	out, err := os.OpenFile("./bep.out", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 
-	RewriteBep(in, out)
+	RewriteBep(in, out, out)
 }
 
-func RewriteBep(from *os.File, to *os.File) {
+func RewriteBep(from *os.File, to *os.File, logTo *os.File) {
 	data, err := os.ReadFile(from.Name())
 	if err != nil {
 		panic(err)
 	}
 
+	var outBuf = proto.NewBuffer(nil)
+
+	commonHomePrefix := utils.WSLToWinPath("/home")
 	for i := 0; i < len(data); {
 		var size, len = proto.DecodeVarint(data[i:])
 
@@ -63,8 +68,20 @@ func RewriteBep(from *os.File, to *os.File) {
 			break
 		case *buildeventstream.BuildEventId_NamedSet:
 			//var namedSet = buildEvent.GetNamedSetOfFiles()
-			// todo patch (replace) file:/// prefix (todo cache wsl prefix & file name once for performance)
+			// todo patch (replace) file:/// prefix (todo 0cache wsl prefix & file name once for performance)
 			//fmt.Println(namedSet)
+			var namedSet = buildEvent.GetNamedSetOfFiles()
+			var newFiles = make([]*buildeventstream.File, 0)
+			for _, file := range namedSet.Files {
+				originalUri := file.GetUri()
+				var path = strings.Replace(originalUri, "file:///home", commonHomePrefix, 1)
+				//var newUri = utils.WSLToWinPath(path)
+				path = "file://" + strings.ReplaceAll(path, "/", "\\")
+				file.File = &buildeventstream.File_Uri{Uri: path}
+				logTo.WriteString(fmt.Sprintf("Replaced %s to %s\n", originalUri, path))
+				newFiles = append(newFiles, file)
+			}
+			buildEvent.GetNamedSetOfFiles().Files = newFiles
 			break
 		case *buildeventstream.BuildEventId_TargetCompleted:
 			label := buildEvent.GetId().GetTargetCompleted().GetLabel()
@@ -85,10 +102,11 @@ func RewriteBep(from *os.File, to *os.File) {
 		i += int(size)
 
 		// transfer part
-		var marshalled, err = proto.Marshal(buildEvent)
+		var err = outBuf.EncodeMessage(buildEvent)
 		if err != nil {
 			panic(err)
 		}
-		to.Write(marshalled) // todo convert
 	}
+
+	to.Write(outBuf.Bytes())
 }

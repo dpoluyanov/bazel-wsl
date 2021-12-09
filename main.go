@@ -16,8 +16,9 @@
 package main
 
 import (
+	bep "bazel-wsl/bep"
+	"bazel-wsl/utils"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -25,8 +26,8 @@ import (
 
 func main() {
 	// open output file
-	//var fo, err = os.OpenFile("C:\\Users\\la_d.poluyanov\\GolandProjects\\bazel\\command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	var fo, err = os.OpenFile("/Users/d.poluyanov/workspace/bazel-wsl/command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	var fo, err = os.OpenFile("C:\\Users\\la_d.poluyanov\\GolandProjects\\bazel\\command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	//var fo, err = os.OpenFile("/Users/d.poluyanov/workspace/bazel-wsl/command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -50,7 +51,8 @@ func main() {
 	bazelArgs := make([]string, 1)
 	bazelArgs[0] = "bazel"
 
-	var sleepAtEnd = false
+	var bepIDEAOutputPath = ""
+	var bepOutputPath = ""
 	for _, arg := range os.Args[1:] {
 		// https://github.com/bazelbuild/intellij/pull/2976/files
 		fo.WriteString(arg + "\n")
@@ -61,57 +63,15 @@ func main() {
 		} else if strings.HasPrefix(arg, "--build_event_binary_file=") {
 			var fileName = strings.Replace(arg, "--build_event_binary_file=", "", 1)
 
-			var wslPathCmd = exec.Command("wsl", "wslpath", "-u", "-a", "'"+fileName+"'")
-			r, w, err := os.Pipe()
-			if err != nil {
-				panic(err)
-			}
-			wslPathCmd.Stdout = w
-			wslPathCmd.Stderr = os.Stderr
-			var buf strings.Builder
-			done := make(chan error, 1)
+			var wslPath = utils.WinToWSLPath(fileName)
 
-			go func() {
-				_, err := io.Copy(&buf, r)
-				r.Close()
-				done <- err
-			}()
-			err = wslPathCmd.Run()
-			if err != nil {
-				panic(err)
-			}
-			w.Close()
-			err = <-done
-			wslPath := strings.TrimSpace(buf.String())
-
-			bazelArgs = append(bazelArgs, "--build_event_binary_file="+wslPath)
-			sleepAtEnd = true
-			// todo make a flag to convert bep & replace bazel output file with our own
+			bepOutputPath = fileName + "_bazel_wsl"
+			bepIDEAOutputPath = fileName
+			bazelArgs = append(bazelArgs, "--build_event_binary_file="+wslPath+"_bazel_wsl")
 		} else if strings.HasPrefix(arg, "--override_repository=intellij_aspect=") {
 			var fileName = strings.Replace(arg, "--override_repository=intellij_aspect=", "", 1)
 
-			var wslPathCmd = exec.Command("wsl", "wslpath", "-u", "-a", "'"+fileName+"'")
-			r, w, err := os.Pipe()
-			if err != nil {
-				panic(err)
-			}
-			wslPathCmd.Stdout = w
-			wslPathCmd.Stderr = os.Stderr
-			var buf strings.Builder
-			done := make(chan error, 1)
-
-			go func() {
-				_, err := io.Copy(&buf, r)
-				r.Close()
-				done <- err
-			}()
-			err = wslPathCmd.Run()
-			if err != nil {
-				panic(err)
-			}
-			w.Close()
-			err = <-done
-			wslPath := strings.TrimSpace(buf.String())
+			wslPath := utils.WinToWSLPath(fileName)
 
 			bazelArgs = append(bazelArgs, "--override_repository=intellij_aspect="+wslPath)
 		} else {
@@ -158,8 +118,32 @@ func main() {
 		fo.WriteString(fmt.Sprint(err))
 		os.Exit(err.(*exec.ExitError).ExitCode())
 	}
-	fo.WriteString("END\n")
-	if sleepAtEnd {
+
+	if bepOutputPath != "" && bepIDEAOutputPath != "" {
+		bepFrom, err1 := os.OpenFile(bepOutputPath, os.O_RDONLY, 0600)
+		if err1 != nil {
+			panic(err1)
+		}
+		defer func() {
+			os.Remove(bepOutputPath)
+			if err := bepFrom.Close(); err != nil {
+				panic(err)
+			}
+		}()
+
+		var bepTo, err = os.OpenFile(bepIDEAOutputPath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0600)
+		if err != nil {
+			panic(err)
+		}
+		defer func() {
+			if err := bepTo.Close(); err != nil {
+				panic(err)
+			}
+		}()
+
+		bep.RewriteBep(bepFrom, bepTo, fo)
+		//bepTo.Close()
+
 		//time.Sleep(60 * time.Second)
 	}
 }
