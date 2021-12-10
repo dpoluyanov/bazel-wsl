@@ -68,7 +68,6 @@ func RewriteBep(from *os.File, to *os.File, logTo *os.File) {
 			break
 		case *buildeventstream.BuildEventId_NamedSet:
 			//var namedSet = buildEvent.GetNamedSetOfFiles()
-			// todo patch (replace) file:/// prefix (todo 0cache wsl prefix & file name once for performance)
 			//fmt.Println(namedSet)
 			var namedSet = buildEvent.GetNamedSetOfFiles()
 			var newFiles = make([]*buildeventstream.File, 0)

@@ -65,6 +65,7 @@ func main() {
 			bazelArgs = append(bazelArgs, newAttr)
 		} else if strings.HasPrefix(arg, "same_pkg_direct_rdeps(") {
 			var newAttr = strings.Replace(arg, "same_pkg_direct_rdeps(", "'same_pkg_direct_rdeps(", 1)
+			newAttr = strings.ReplaceAll(newAttr, "\\", "/")
 			newAttr = newAttr + "'"
 			bazelArgs = append(bazelArgs, newAttr)
 		} else if strings.HasPrefix(arg, "--build_event_binary_file=") {
@@ -105,7 +106,7 @@ func main() {
 	//defer func() {
 	//	logFile.Close()
 	//}()
-	//mw := io.MultiWriter(logFile, )
+	//mw := io.MultiWriter(logFile, os.Stdout)
 	//logFileErr, err := os.OpenFile("C:\\Users\\la_d.poluyanov\\GolandProjects\\bazel\\log_err.txt", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
 	//if err != nil {
 	//	panic(err)
@@ -119,16 +120,13 @@ func main() {
 	cmd := exec.Command("wsl", bazelArgs...)
 	cmd.Stdout = &outBuffer
 	cmd.Stderr = os.Stderr
+	//cmd.Stdout = mw
+	//cmd.Stderr = mwErr
 
-	err = cmd.Run()
+	cmdErr := cmd.Run()
 
 	var patchedBuffer = PatchBuffer(&outBuffer)
 	os.Stdout.Write(patchedBuffer.Bytes())
-
-	if err != nil {
-		fo.WriteString(fmt.Sprint(err))
-		os.Exit(err.(*exec.ExitError).ExitCode())
-	}
 
 	if bepOutputPath != "" && bepIDEAOutputPath != "" {
 		bepFrom, err1 := os.OpenFile(bepOutputPath, os.O_RDONLY, 0600)
@@ -156,6 +154,11 @@ func main() {
 		//bepTo.Close()
 
 		//time.Sleep(60 * time.Second)
+	}
+
+	if cmdErr != nil {
+		fo.WriteString(fmt.Sprint(cmd))
+		os.Exit(cmdErr.(*exec.ExitError).ExitCode())
 	}
 }
 
