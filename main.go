@@ -29,8 +29,7 @@ import (
 
 func main() {
 	// open output file
-	var fo, err = os.OpenFile("C:\\Users\\la_d.poluyanov\\GolandProjects\\bazel\\command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
-	//var fo, err = os.OpenFile("/Users/d.poluyanov/workspace/bazel-wsl/command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+	var fo, err = os.OpenFile("command_log.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 	if err != nil {
 		panic(err)
 	}
@@ -98,30 +97,10 @@ func main() {
 		fo.WriteString(arg + "\n")
 	}
 
-	//logFile, err := os.OpenFile("C:\\Users\\la_d.poluyanov\\GolandProjects\\bazel\\log.txt", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//defer func() {
-	//	logFile.Close()
-	//}()
-	//mw := io.MultiWriter(logFile, os.Stdout)
-	//logFileErr, err := os.OpenFile("C:\\Users\\la_d.poluyanov\\GolandProjects\\bazel\\log_err.txt", os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
-	//if err != nil {
-	//	panic(err)
-	//}
-	//defer func() {
-	//	logFileErr.Close()
-	//}()
-	//mwErr := io.MultiWriter(os.Stderr, logFileErr)
-
 	var outBuffer bytes.Buffer
 	cmd := exec.Command("wsl", bazelArgs...)
 	cmd.Stdout = &outBuffer
 	cmd.Stderr = os.Stderr
-	//cmd.Stdout = mw
-	//cmd.Stderr = mwErr
 
 	cmdErr := cmd.Run()
 

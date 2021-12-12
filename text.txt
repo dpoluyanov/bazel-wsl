@@ -1,1 +1,0 @@
-//wsl$/Ubuntu-20.04/home/dpoluyanov/.cache/bazel/_bazel_dpoluyanov/5c44cfbcaf8e942dd6de2de8fce826bb/execroot/crpt_workspace/bazel-out/k8-fastbuild/bin/shared/hash/src/main/kotlin/ru/crpt/hash/checksum/commons-checksum.java-manifest
