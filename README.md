@@ -12,3 +12,5 @@ with [IntelliJ IDEA WSL integration](https://www.jetbrains.com/help/idea/how-to-
 
 Press "Sync project with BUILD files" button and wait for initial synchronization (It may take some time to initial
 bazel cache population)
+
+As for https://github.com/bazelbuild/intellij/issues/3112 manually patched version of bazel intellij plugin should be created (in order to fix dependencies resolution problem on wsl environments)
