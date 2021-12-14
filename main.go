@@ -16,7 +16,7 @@
 package main
 
 import (
-	bep "bazel-wsl/bep"
+	"bazel-wsl/bep"
 	"bazel-wsl/utils"
 	"bufio"
 	"bytes"
@@ -55,6 +55,7 @@ func main() {
 
 	var bepIDEAOutputPath = ""
 	var bepOutputPath = ""
+	var patchOutputBuffer = true
 	for _, arg := range os.Args[1:] {
 		// https://github.com/bazelbuild/intellij/pull/2976/files
 		fo.WriteString(arg + "\n")
@@ -81,6 +82,9 @@ func main() {
 			wslPath := utils.WinToWSLPath(fileName)
 
 			bazelArgs = append(bazelArgs, "--override_repository=intellij_aspect="+wslPath)
+		} else if strings.HasPrefix(arg, "build-language") {
+			patchOutputBuffer = false
+			bazelArgs = append(bazelArgs, arg)
 		} else {
 			bazelArgs = append(bazelArgs, arg)
 		}
@@ -104,8 +108,12 @@ func main() {
 
 	cmdErr := cmd.Run()
 
-	var patchedBuffer = PatchBuffer(&outBuffer)
-	os.Stdout.Write(patchedBuffer.Bytes())
+	if patchOutputBuffer {
+		var patchedBuffer = PatchBuffer(&outBuffer)
+		os.Stdout.Write(patchedBuffer.Bytes())
+	} else {
+		os.Stdout.Write(outBuffer.Bytes())
+	}
 
 	if bepOutputPath != "" && bepIDEAOutputPath != "" {
 		bepFrom, err1 := os.OpenFile(bepOutputPath, os.O_RDONLY, 0600)
