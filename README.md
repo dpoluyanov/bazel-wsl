@@ -16,5 +16,4 @@ bazel cache population)
 As for https://github.com/bazelbuild/intellij/issues/3112 manually patched version of bazel intellij plugin should be created (in order to fix dependencies resolution problem on wsl environments)
 
 # Known issues
-- Your project must be on default wsl distro (you colud check all distros with `wsl --list --all`, default will be labeled as Default)
-and change it with `wsl --setdefault <DistributionName>`, like `wsl --setdefault Ubuntu-20.04`
+- On most Windows machines the default wsl distro is set to docker machine. As for now your project must be on default wsl distro (you colud check all distros with `wsl --list --all`, default will be labeled as Default) and change it with `wsl --setdefault <DistributionName>`, like `wsl --setdefault Ubuntu-20.04`
