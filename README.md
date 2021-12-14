@@ -14,3 +14,7 @@ Press "Sync project with BUILD files" button and wait for initial synchronizatio
 bazel cache population)
 
 As for https://github.com/bazelbuild/intellij/issues/3112 manually patched version of bazel intellij plugin should be created (in order to fix dependencies resolution problem on wsl environments)
+
+# Known issues
+- Your project must be on default wsl distro (you colud check all distros with `wsl --list --all`, default will be labeled as Default)
+and change it with `wsl --setdefault <DistributionName>`, like `wsl --setdefault Ubuntu-20.04`
