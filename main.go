@@ -85,6 +85,9 @@ func main() {
 		} else if strings.HasPrefix(arg, "build-language") {
 			patchOutputBuffer = false
 			bazelArgs = append(bazelArgs, arg)
+		} else if strings.TrimSpace(arg) == "run" {
+			patchOutputBuffer = false
+			bazelArgs = append(bazelArgs, arg)
 		} else {
 			bazelArgs = append(bazelArgs, arg)
 		}
@@ -103,7 +106,11 @@ func main() {
 
 	var outBuffer bytes.Buffer
 	cmd := exec.Command("wsl", bazelArgs...)
-	cmd.Stdout = &outBuffer
+	if patchOutputBuffer {
+		cmd.Stdout = &outBuffer
+	} else {
+		cmd.Stdout = os.Stdout
+	}
 	cmd.Stderr = os.Stderr
 
 	cmdErr := cmd.Run()
@@ -111,8 +118,6 @@ func main() {
 	if patchOutputBuffer {
 		var patchedBuffer = PatchBuffer(&outBuffer)
 		os.Stdout.Write(patchedBuffer.Bytes())
-	} else {
-		os.Stdout.Write(outBuffer.Bytes())
 	}
 
 	if bepOutputPath != "" && bepIDEAOutputPath != "" {
